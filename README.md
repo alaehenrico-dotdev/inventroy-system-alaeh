@@ -1,3 +1,4 @@
+ HEAD
 # Ala Eh! Inventory & Monitoring System
 
 A working implementation of the *Inventory & Monitoring System — Documentation Plan v3.0*
@@ -118,3 +119,5 @@ the compiled app from Apache instead of the Vite dev server.
   timeout) to match the scope of this build — harden it before
   exposing the system beyond the local network.
 - `seed_admin.php` should be deleted from the server after first use.
+
+# inventroy-system-alaeh 53784594aa145dc5133f9cb6139fcc0c38765906
