@@ -11,6 +11,8 @@ import OsprBatch from '../features/ospr/OsprBatch.jsx';
 import Transfers from '../features/transfers/Transfers.jsx';
 import Rts from '../features/rts/Rts.jsx';
 import Logistics from '../features/logistics/Logistics.jsx';
+import ReceiptList from '../features/logistics/ReceiptList.jsx';
+import ReceiptDetail from '../features/logistics/ReceiptDetail.jsx';
 import Fulfillment from '../features/fulfillment/Fulfillment.jsx';
 import LogBooks from '../features/log-books/LogBooks.jsx';
 import AuditTrail from '../features/audit-trail/AuditTrail.jsx';
@@ -34,6 +36,8 @@ function Shell() {
           <Route path="/transfers" element={<Transfers />} />
           <Route path="/rts" element={<Rts />} />
           <Route path="/logistics" element={<Logistics />} />
+          <Route path="/logistics/receipts" element={<ReceiptList />} />
+          <Route path="/logistics/receipts/:id" element={<ReceiptDetail />} />
           <Route path="/fulfillment" element={<Fulfillment />} />
           <Route path="/log-books" element={<LogBooks />} />
           <Route path="/audit-trail" element={<AuditTrail />} />

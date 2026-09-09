@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../shared/auth/AuthContext.jsx';
+import LogoMark from '../../shared/brand/LogoMark.jsx';
 
 export default function Login() {
   const { user, login } = useAuth();
@@ -27,8 +28,13 @@ export default function Login() {
   return (
     <div className="login-screen">
       <div className="login-card">
-        <div className="login-plant">ALA EH! FOOD PRODUCTS</div>
-        <h1 className="login-title">Inventory &amp; Monitoring</h1>
+        <div className="login-brand">
+          <LogoMark size={64} />
+          <div>
+            <div className="login-plant">LODLOD, LIPA CITY</div>
+            <h1 className="login-title">Inventory &amp; Monitoring</h1>
+          </div>
+        </div>
 
         {error && <div className="error-banner">{error}</div>}
 

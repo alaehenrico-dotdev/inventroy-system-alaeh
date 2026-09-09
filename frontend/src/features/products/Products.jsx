@@ -5,7 +5,7 @@ export default function Products() {
   const [products, setProducts] = useState([]);
   const [units, setUnits] = useState([]);
   const [error, setError] = useState('');
-  const [form, setForm] = useState({ name: '', category: 'CONDIMENT', unit_ids: [] });
+  const [form, setForm] = useState({ name: '', category: 'CONDIMENT', barcode: '', unit_ids: [] });
   const [saving, setSaving] = useState(false);
 
   function load() {
@@ -32,8 +32,8 @@ export default function Products() {
     setSaving(true);
     setError('');
     try {
-      await client.post('/api/products', form);
-      setForm({ name: '', category: 'CONDIMENT', unit_ids: [] });
+      await client.post('/api/products', { ...form, barcode: form.barcode || null });
+      setForm({ name: '', category: 'CONDIMENT', barcode: '', unit_ids: [] });
       load();
     } catch (err) {
       setError(err.message);
@@ -68,6 +68,15 @@ export default function Products() {
                 <option value="RETAIL_DRY_GOODS">Retail dry goods</option>
               </select>
             </div>
+            <div className="field">
+              <label>Barcode (optional)</label>
+              <input
+                className="mono"
+                value={form.barcode}
+                onChange={(e) => setForm({ ...form, barcode: e.target.value })}
+                placeholder="Scan or type the barcode value"
+              />
+            </div>
           </div>
           <div className="field">
             <label>Units carried</label>
@@ -92,7 +101,7 @@ export default function Products() {
         <div className="panel-title">Catalog ({products.length})</div>
         <table>
           <thead>
-            <tr><th>#</th><th>Product</th><th>Category</th><th>Units</th></tr>
+            <tr><th>#</th><th>Product</th><th>Category</th><th>Barcode</th><th>Units</th></tr>
           </thead>
           <tbody>
             {products.map((p) => (
@@ -100,6 +109,7 @@ export default function Products() {
                 <td className="mono">{p.id}</td>
                 <td>{p.name}</td>
                 <td>{p.category === 'RETAIL_DRY_GOODS' ? 'Retail dry goods' : 'Condiment'}</td>
+                <td className="mono">{p.barcode || '—'}</td>
                 <td className="mono">{p.units.map((u) => u.code).join(', ')}</td>
               </tr>
             ))}

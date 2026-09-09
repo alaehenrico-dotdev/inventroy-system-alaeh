@@ -1,5 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useState } from 'react';
 import client from '../../shared/api/client.js';
+import { queuedRequest } from '../../shared/offline/offlineQueue.js';
+
+// @zxing/browser's decoder is large - only fetch it when someone actually opens the scanner.
+const BarcodeScanner = lazy(() => import('../../shared/barcode/BarcodeScanner.jsx'));
 
 const TYPES = [
   { value: 'DELIVERY_RECEIPT', label: 'Delivery receipt' },
@@ -12,7 +16,10 @@ export default function Logistics() {
   const [products, setProducts] = useState([]);
   const [rows, setRows] = useState([]);
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
   const [saving, setSaving] = useState(false);
+  const [scanning, setScanning] = useState(false);
+  const [duplicateWarning, setDuplicateWarning] = useState(null); // { message } while awaiting confirm
   const [form, setForm] = useState({ type: 'DELIVERY_RECEIPT', product_id: '', unit_id: '', quantity: '', reference: '' });
 
   function load() {
@@ -24,23 +31,50 @@ export default function Logistics() {
 
   const selectedProduct = products.find((p) => String(p.id) === String(form.product_id));
 
+  function handleScanned(code) {
+    setScanning(false);
+    client.get('/api/products/lookup', { params: { barcode: code } })
+      .then((r) => {
+        const product = r.data;
+        setForm((f) => ({
+          ...f,
+          product_id: product.id,
+          unit_id: product.units.length === 1 ? product.units[0].id : '',
+        }));
+      })
+      .catch((e) => setError(e.message));
+  }
+
+  async function submit(confirmDuplicate) {
+    setSaving(true);
+    setError('');
+    try {
+      const payload = { ...form, confirm_duplicate: confirmDuplicate || undefined };
+      const result = await queuedRequest('post', '/api/logistics', payload);
+      setDuplicateWarning(null);
+      setForm((f) => ({ ...f, quantity: '', reference: '' }));
+      setNotice(result.queued ? 'Offline - saved locally, will sync automatically.' : '');
+      load();
+    } catch (err) {
+      if (err.code === 'duplicate_reference') {
+        setDuplicateWarning({ message: err.response.data.message });
+      } else {
+        setError(err.message);
+      }
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
+    setNotice('');
     if (!form.product_id || !form.unit_id || !form.quantity) {
       setError('Fill in product, unit and quantity.');
       return;
     }
-    setSaving(true);
-    try {
-      await client.post('/api/logistics', form);
-      setForm((f) => ({ ...f, quantity: '', reference: '' }));
-      load();
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setSaving(false);
-    }
+    submit(false);
   }
 
   return (
@@ -53,9 +87,28 @@ export default function Logistics() {
       </div>
 
       {error && <div className="error-banner">{error}</div>}
+      {notice && <div className="offline-banner">{notice}</div>}
+
+      {scanning && (
+        <Suspense fallback={<div className="modal-overlay"><div className="modal-card">Loading scanner…</div></div>}>
+          <BarcodeScanner onDetected={handleScanned} onClose={() => setScanning(false)} />
+        </Suspense>
+      )}
+
+      {duplicateWarning && (
+        <div className="panel accent-brick">
+          <div className="panel-title">Possible duplicate</div>
+          <p style={{ fontSize: 13.5 }}>{duplicateWarning.message} Log it anyway?</p>
+          <button className="btn" onClick={() => submit(true)} disabled={saving}>Log anyway</button>{' '}
+          <button className="btn ghost" onClick={() => setDuplicateWarning(null)}>Cancel</button>
+        </div>
+      )}
 
       <div className="panel accent-olive">
-        <div className="panel-title">Log a transaction</div>
+        <div className="panel-title">
+          Log a transaction
+          <button type="button" className="btn small ghost" onClick={() => setScanning(true)}>Scan barcode</button>
+        </div>
         <form onSubmit={handleSubmit}>
           <div className="field-row">
             <div className="field">

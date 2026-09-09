@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <!-- Simplified stand-in for the Ala Eh! Food Products seal - see
+       src/shared/brand/LogoMark.jsx for the React version used in-app.
+       Swap for the real logo file when available. -->
+  <circle cx="100" cy="100" r="97" fill="#0F1712" stroke="#C99A2E" stroke-width="6"/>
+  <path d="M58 92 Q100 46 142 92 Z" fill="#C99A2E"/>
+  <ellipse cx="100" cy="92" rx="44" ry="7" fill="#9C7521"/>
+  <rect x="32" y="102" width="136" height="42" rx="21" fill="#C1272D"/>
+  <text x="100" y="131" text-anchor="middle" font-family="'IBM Plex Sans', Arial, sans-serif"
+        font-weight="800" font-style="italic" font-size="30" fill="#FFD400"
+        stroke="#16201B" stroke-width="1.5" paint-order="stroke">Ala Eh!</text>
+  <text x="100" y="160" text-anchor="middle" font-family="'IBM Plex Sans', Arial, sans-serif"
+        font-weight="600" letter-spacing="1.5" font-size="12" fill="#EDE8D9">FOOD PRODUCTS</text>
+</svg>

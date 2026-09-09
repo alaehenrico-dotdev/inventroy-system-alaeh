@@ -4,6 +4,8 @@
    sauce) running Production -> Packing -> Logistics. Palette pulls
    from the materials on that floor rather than generic SaaS defaults:
    dark glass-bottle green, soy-sauce amber, kraft tally-paper tan.
+   --amber/--amber-deep are tuned to the gold ring in the Ala Eh!
+   logo mark (see shared/brand/LogoMark.jsx).
    ============================================================ */
 :root {
   --ink-900: #0F1712;
@@ -16,8 +18,8 @@
   --paper-raised: #F1ECDA;
   --paper-line: #C9C0A0;
 
-  --amber: #B8752E;
-  --amber-deep: #8F5A21;
+  --amber: #C99A2E;
+  --amber-deep: #9C7521;
   --olive: #5C7A5E;
   --olive-deep: #3F5941;
   --brick: #9C4A3A;
@@ -85,10 +87,15 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; }
 }
 
 .sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   padding: 0 20px 18px;
   border-bottom: 1px solid var(--line-on-ink);
   margin-bottom: 14px;
 }
+
+.sidebar-brand svg { flex-shrink: 0; }
 
 .sidebar-brand .plant {
   font-family: var(--font-data);
@@ -328,6 +335,15 @@ tbody tr:last-child td { border-bottom: none; }
   border-top: 4px solid var(--amber);
 }
 
+.login-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.login-brand svg { flex-shrink: 0; }
+
 .login-plant {
   font-family: var(--font-data);
   font-size: 11px;
@@ -336,7 +352,49 @@ tbody tr:last-child td { border-bottom: none; }
   margin-bottom: 6px;
 }
 
-.login-title { font-size: 20px; font-weight: 600; margin: 0 0 22px; }
+.login-title { font-size: 20px; font-weight: 600; margin: 0; }
+
+/* ------------------------------------------------------------
+   Barcode scanner modal
+   ------------------------------------------------------------ */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15,23,18,0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+}
+
+.modal-card {
+  background: var(--paper-raised);
+  border-radius: var(--radius);
+  padding: 18px;
+  width: 100%;
+  max-width: 420px;
+}
+
+.modal-card video {
+  width: 100%;
+  border-radius: var(--radius);
+  background: var(--ink-900);
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+/* ------------------------------------------------------------
+   Offline queue banner
+   ------------------------------------------------------------ */
+.offline-banner {
+  background: rgba(184,117,46,0.16);
+  border: 1px solid var(--amber);
+  color: var(--amber-deep);
+  padding: 8px 20px;
+  font-size: 12.5px;
+  font-weight: 500;
+}
 
 .tabs { display: flex; gap: 4px; margin-bottom: 18px; flex-wrap: wrap; }
 .tab {
