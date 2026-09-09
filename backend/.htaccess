@@ -1,0 +1,2 @@
+# The web root is backend/public/ - see public/.htaccess for the API rewrite rule.
+Options -Indexes

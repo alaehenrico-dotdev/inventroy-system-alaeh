@@ -1,0 +1,2 @@
+# Source and config are not meant to be requested directly - only public/index.php is.
+Require all denied

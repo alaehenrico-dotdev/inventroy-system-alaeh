@@ -1,0 +1,351 @@
+/* ============================================================
+   Design tokens
+   Subject: a condiments factory floor (soy sauce / vinegar / oyster
+   sauce) running Production -> Packing -> Logistics. Palette pulls
+   from the materials on that floor rather than generic SaaS defaults:
+   dark glass-bottle green, soy-sauce amber, kraft tally-paper tan.
+   ============================================================ */
+:root {
+  --ink-900: #0F1712;
+  --ink-800: #16211B;
+  --ink-700: #1E2C24;
+  --ink-600: #2A3B31;
+  --line-on-ink: #3A4C40;
+
+  --paper: #E7E1CB;
+  --paper-raised: #F1ECDA;
+  --paper-line: #C9C0A0;
+
+  --amber: #B8752E;
+  --amber-deep: #8F5A21;
+  --olive: #5C7A5E;
+  --olive-deep: #3F5941;
+  --brick: #9C4A3A;
+  --brick-deep: #7A382B;
+
+  --text-on-ink: #EDE8D9;
+  --text-on-ink-dim: #A9B6AC;
+  --text-on-paper: #16201B;
+  --text-on-paper-dim: #5B5A46;
+
+  --font-ui: 'IBM Plex Sans', -apple-system, sans-serif;
+  --font-data: 'IBM Plex Mono', 'SFMono-Regular', monospace;
+
+  --radius: 3px;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root { height: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--font-ui);
+  background: var(--paper);
+  color: var(--text-on-paper);
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; }
+
+button, input, select, textarea { font-family: inherit; font-size: inherit; }
+
+::selection { background: var(--amber); color: var(--text-on-ink); }
+
+:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
+}
+
+/* ------------------------------------------------------------
+   App shell
+   ------------------------------------------------------------ */
+.app-shell {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+}
+
+@media (max-width: 860px) {
+  .app-shell { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .sidebar.open { display: flex; }
+}
+
+.sidebar {
+  background: var(--ink-900);
+  color: var(--text-on-ink);
+  display: flex;
+  flex-direction: column;
+  padding: 22px 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.sidebar-brand {
+  padding: 0 20px 18px;
+  border-bottom: 1px solid var(--line-on-ink);
+  margin-bottom: 14px;
+}
+
+.sidebar-brand .plant {
+  font-family: var(--font-data);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--amber);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.sidebar-brand .name {
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.25;
+  display: block;
+}
+
+.sidebar-group-label {
+  font-size: 11px;
+  color: var(--text-on-ink-dim);
+  padding: 14px 20px 6px;
+  font-weight: 500;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 20px;
+  text-decoration: none;
+  color: var(--text-on-ink-dim);
+  border-left: 3px solid transparent;
+  font-size: 14.5px;
+}
+
+.nav-link:hover { color: var(--text-on-ink); background: var(--ink-800); }
+
+.nav-link.active {
+  color: var(--text-on-ink);
+  background: var(--ink-700);
+  border-left-color: var(--amber);
+  font-weight: 500;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 14px 20px 0;
+  border-top: 1px solid var(--line-on-ink);
+}
+
+.sidebar-user {
+  font-size: 13px;
+  color: var(--text-on-ink-dim);
+}
+
+.sidebar-user strong { color: var(--text-on-ink); display: block; font-size: 14px; }
+
+.logout-btn {
+  margin-top: 10px;
+  background: none;
+  border: 1px solid var(--line-on-ink);
+  color: var(--text-on-ink-dim);
+  padding: 6px 12px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 13px;
+  width: 100%;
+}
+.logout-btn:hover { color: var(--text-on-ink); border-color: var(--amber); }
+
+.main {
+  padding: 28px 32px 60px;
+  max-width: 1180px;
+}
+
+.topbar {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.page-title { font-size: 22px; font-weight: 600; margin: 0; }
+.page-subtitle { color: var(--text-on-paper-dim); font-size: 13.5px; margin-top: 4px; }
+
+/* ------------------------------------------------------------
+   Panels & cards
+   ------------------------------------------------------------ */
+.panel {
+  background: var(--paper-raised);
+  border: 1px solid var(--paper-line);
+  border-left: 3px solid var(--ink-600);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  margin-bottom: 20px;
+}
+.panel.accent-amber { border-left-color: var(--amber); }
+.panel.accent-olive { border-left-color: var(--olive); }
+.panel.accent-brick { border-left-color: var(--brick); }
+
+.panel-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.stat-card {
+  background: var(--paper-raised);
+  border: 1px solid var(--paper-line);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+}
+.stat-card .label { font-size: 12px; color: var(--text-on-paper-dim); }
+.stat-card .value { font-family: var(--font-data); font-size: 26px; font-weight: 600; margin-top: 4px; }
+.stat-card .value.amber { color: var(--amber-deep); }
+.stat-card .value.brick { color: var(--brick-deep); }
+.stat-card .value.olive { color: var(--olive-deep); }
+
+/* ------------------------------------------------------------
+   Tables
+   ------------------------------------------------------------ */
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+thead th {
+  text-align: left;
+  font-weight: 500;
+  color: var(--text-on-paper-dim);
+  font-size: 11.5px;
+  padding: 0 10px 8px;
+  border-bottom: 1px solid var(--paper-line);
+}
+tbody td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--paper-line);
+  vertical-align: top;
+}
+tbody tr:last-child td { border-bottom: none; }
+.num { font-family: var(--font-data); text-align: right; }
+.mono { font-family: var(--font-data); }
+
+/* ------------------------------------------------------------
+   Forms
+   ------------------------------------------------------------ */
+.field { margin-bottom: 14px; display: flex; flex-direction: column; gap: 5px; }
+.field label { font-size: 12.5px; color: var(--text-on-paper-dim); }
+.field input, .field select, .field textarea {
+  border: 1px solid var(--paper-line);
+  background: #fff;
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  color: var(--text-on-paper);
+}
+.field-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; }
+
+.btn {
+  border: 1px solid var(--ink-600);
+  background: var(--ink-800);
+  color: var(--text-on-ink);
+  padding: 9px 16px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 13.5px;
+  font-weight: 500;
+}
+.btn:hover { background: var(--ink-700); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn.primary { background: var(--amber-deep); border-color: var(--amber-deep); }
+.btn.primary:hover { background: var(--amber); }
+.btn.ghost { background: transparent; color: var(--text-on-paper); border-color: var(--paper-line); }
+.btn.danger { background: var(--brick-deep); border-color: var(--brick-deep); }
+.btn.small { padding: 5px 10px; font-size: 12.5px; }
+
+/* ------------------------------------------------------------
+   Badges
+   ------------------------------------------------------------ */
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
+  font-family: var(--font-data);
+}
+.badge.online { background: rgba(92,122,94,0.18); color: var(--olive-deep); }
+.badge.offline { background: rgba(184,117,46,0.18); color: var(--amber-deep); }
+.badge.open { background: rgba(92,122,94,0.18); color: var(--olive-deep); }
+.badge.closed { background: rgba(90,90,80,0.15); color: var(--text-on-paper-dim); }
+.badge.alert { background: rgba(156,74,58,0.18); color: var(--brick-deep); }
+.badge.pending { background: rgba(184,117,46,0.2); color: var(--amber-deep); }
+
+.empty-state {
+  padding: 30px 10px;
+  text-align: center;
+  color: var(--text-on-paper-dim);
+  font-size: 13.5px;
+}
+
+.error-banner {
+  background: rgba(156,74,58,0.12);
+  border: 1px solid var(--brick);
+  color: var(--brick-deep);
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  font-size: 13.5px;
+}
+
+/* ------------------------------------------------------------
+   Login screen
+   ------------------------------------------------------------ */
+.login-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ink-900);
+  padding: 20px;
+}
+
+.login-card {
+  background: var(--paper-raised);
+  border-radius: var(--radius);
+  padding: 36px 34px;
+  width: 100%;
+  max-width: 360px;
+  border-top: 4px solid var(--amber);
+}
+
+.login-plant {
+  font-family: var(--font-data);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: var(--amber-deep);
+  margin-bottom: 6px;
+}
+
+.login-title { font-size: 20px; font-weight: 600; margin: 0 0 22px; }
+
+.tabs { display: flex; gap: 4px; margin-bottom: 18px; flex-wrap: wrap; }
+.tab {
+  padding: 6px 12px;
+  font-size: 12.5px;
+  border-radius: var(--radius);
+  border: 1px solid var(--paper-line);
+  background: transparent;
+  cursor: pointer;
+  color: var(--text-on-paper-dim);
+}
+.tab.active { background: var(--ink-800); color: var(--text-on-ink); border-color: var(--ink-800); }
