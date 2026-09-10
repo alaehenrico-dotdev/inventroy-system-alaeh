@@ -1,6 +1,6 @@
 // Mirrors Controllers/Ospr/ItemController.php - GET/POST/DELETE /api/ospr/items
 import type { Request, Response } from 'express';
-import { exec, pool, query } from '../../db/pool.js';
+import { pool, query } from '../../db/pool.js';
 import { auditLog } from '../../support/audit.js';
 import { adjust } from '../../domain/channelInventory.js';
 import { requireFields, sendError, sendJson } from '../../support/http.js';
@@ -78,18 +78,48 @@ async function create(req: Request, res: Response): Promise<void> {
   }
 }
 
+// Fixed gap (previously noted in system-workflows.md): removing a line used
+// to leave the ONLINE decrement it made in place, and didn't check the
+// batch was still open. Now mirrors logistics/receiptItemController's
+// DELETE - reverses the balance and requires the batch still be OPEN,
+// inside one FOR UPDATE transaction so a concurrent close can't race it.
 async function remove(req: Request, res: Response): Promise<void> {
   const body = req.body as Record<string, any>;
   if (requireFields(res, body, ['id'])) return;
 
-  // TODO(bug, preserved from PHP): unlike logistics/receiptItemController's
-  // DELETE, this does NOT reverse the ONLINE channel_inventory adjustment
-  // that was made when the item was added, and does not check whether the
-  // batch is still OPEN. This is a known, pre-existing gap in the original
-  // system (see system-workflows.md) - preserved here for behavior parity
-  // rather than silently fixed during the migration.
-  await exec('DELETE FROM ospr_order_items WHERE id = :id', { id: body.id });
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
 
-  await auditLog('DELETE_ORDER_ITEM', 'ospr_order_items', Number(body.id));
-  sendJson(res, { success: true });
+    const [rows] = await conn.execute<any[]>(
+      `SELECT oi.*, b.status AS batch_status
+       FROM ospr_order_items oi
+       JOIN ospr_batches b ON b.id = oi.batch_id
+       WHERE oi.id = :id FOR UPDATE`,
+      { id: body.id },
+    );
+    const item = rows[0];
+    if (!item) {
+      await conn.rollback();
+      sendError(res, 'Order item not found', 404);
+      return;
+    }
+    if (item.batch_status !== 'OPEN') {
+      await conn.rollback();
+      sendError(res, 'Batch is already closed', 409);
+      return;
+    }
+
+    await conn.execute('DELETE FROM ospr_order_items WHERE id = :id', { id: body.id });
+    await adjust(conn, item.product_id, item.unit_id, 'ONLINE', Number(item.quantity));
+
+    await conn.commit();
+    await auditLog('DELETE_ORDER_ITEM', 'ospr_order_items', Number(body.id));
+    sendJson(res, { success: true });
+  } catch (err) {
+    await conn.rollback();
+    sendError(res, `Failed to delete order item: ${err instanceof Error ? err.message : String(err)}`, 500);
+  } finally {
+    conn.release();
+  }
 }

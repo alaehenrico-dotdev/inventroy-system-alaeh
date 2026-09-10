@@ -66,8 +66,10 @@ would try to recreate tables that already exist. Apply each file in
 
 Every endpoint from Section 6 of the plan is implemented as a controller
 under `backend/src/controllers/`, routed (see `backend/src/routes/index.ts`)
-as: `POST /api/login`, `GET|POST /api/products`, `GET /api/products/lookup`
-(barcode → product, used by the scan-to-select flow), `GET|POST /api/packers`,
+as: `POST /api/login`, `GET|POST|PUT /api/products`, `GET /api/products/lookup`
+(barcode → product, used by the scan-to-select flow), `GET /api/products/export`
+(full catalog as CSV), `POST /api/products/import` (CSV upsert by SKU),
+`GET|POST /api/packers`,
 `GET /api/units`, `GET|PUT /api/channel-inventory`, `GET /api/stock-alerts`,
 `GET|POST /api/withdrawals`, `GET|POST /api/ospr/batches`,
 `GET|POST|DELETE /api/ospr/items`, `POST /api/ospr/close`,
@@ -76,6 +78,8 @@ as: `POST /api/login`, `GET|POST /api/products`, `GET /api/products/lookup`
 `GET|POST /api/logistics/receipts` (open/list a Delivery Receipt manifest),
 `GET|POST|DELETE /api/logistics/receipts/items` (scan a line onto one),
 `POST /api/logistics/receipts/close`, `GET|POST /api/fulfillment-daily`,
+`GET|POST /api/pack-logs` (per-shift packing quota entries),
+`GET /api/pack-logs/quota-summary` (per-packer roll-up vs. quota),
 `GET /api/log-books` and `GET /api/audit-trail`.
 
 A `POST` to `/api/logistics` or `/api/logistics/receipts` with a `reference`
@@ -137,8 +141,13 @@ proxy in front of the backend.
 - **Dual log book** — By SKU and By Packer views (Section 8.4).
 - **Stock alerts** and **audit trail** for reconciliation.
 - **Product catalog** — the ~29-item catalog from Section 10, with the
-  ability to add new products, flag which units they carry, and assign each
-  a barcode for the scan-to-select flow.
+  ability to add or edit products (each with a required, unique SKU), flag
+  which units they carry, and assign each a barcode for the scan-to-select
+  flow. Also supports exporting the whole catalog as CSV and importing a
+  CSV to bulk-add/update products (upserts by SKU).
+- **Packing quota** — packers log packs per shift (product, unit, quantity)
+  against a per-packer quota (85/shift by default), with a live roll-up of
+  total packed vs. quota and a per-product/SKU breakdown.
 
 ## 5. Notes & things to confirm before go-live
 
@@ -149,6 +158,12 @@ proxy in front of the backend.
 - "Palm Oil" and "NSC" appear as unlabeled entries on the field sheet
   with no recorded quantity and are **not** in the seeded catalog —
   add them once their units/meaning are confirmed.
+- The seeded catalog's `sku` values (`AE-0001`..`AE-0029`) are placeholder
+  codes assigned so the now-required, unique SKU column has something to
+  seed with — re-code each product to its real SKU via the Product
+  Catalog page's Edit button once one is settled. (CSV import instead
+  upserts *by* SKU, so re-importing a CSV with a changed SKU creates a new
+  product rather than renaming the existing one — use Edit for that.)
 - Login is intentionally simple (username/password, no session
   timeout) to match the scope of this build — harden it before
   exposing the system beyond the local network.

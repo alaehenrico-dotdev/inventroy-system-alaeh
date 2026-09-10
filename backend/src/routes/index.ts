@@ -13,6 +13,7 @@ import * as itemController from '../controllers/ospr/itemController.js';
 import * as closeController from '../controllers/ospr/closeController.js';
 import * as boxesUsedController from '../controllers/ospr/boxesUsedController.js';
 import * as packersController from '../controllers/packersController.js';
+import * as packLogsController from '../controllers/packLogsController.js';
 import * as productsController from '../controllers/productsController.js';
 import * as rtsController from '../controllers/rtsController.js';
 import * as transferController from '../controllers/transferController.js';
@@ -26,10 +27,17 @@ router.map('POST', '/api/login', authController.login);
 
 router.map('GET', '/api/products', productsController.index);
 router.map('POST', '/api/products', productsController.index);
+router.map('PUT', '/api/products', productsController.index);
 router.map('GET', '/api/products/lookup', productsController.lookup);
+router.map('GET', '/api/products/export', productsController.exportCsv);
+router.map('POST', '/api/products/import', productsController.importCsv);
 
 router.map('GET', '/api/packers', packersController.index);
 router.map('POST', '/api/packers', packersController.index);
+
+router.map('GET', '/api/pack-logs', packLogsController.index);
+router.map('POST', '/api/pack-logs', packLogsController.index);
+router.map('GET', '/api/pack-logs/quota-summary', packLogsController.quotaSummary);
 
 router.map('GET', '/api/units', unitsController.index);
 

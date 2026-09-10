@@ -40,6 +40,7 @@ CREATE TABLE packers (
   id INT AUTO_INCREMENT PRIMARY KEY,
   packer_no INT NOT NULL UNIQUE,
   name VARCHAR(80) NULL,
+  daily_quota INT NOT NULL DEFAULT 85,
   active TINYINT(1) NOT NULL DEFAULT 1
 );
 
@@ -51,9 +52,11 @@ INSERT INTO packers (packer_no, name) VALUES (1,NULL),(2,NULL),(4,NULL),(6,NULL)
 CREATE TABLE products (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(100) NOT NULL,
+  sku VARCHAR(64) NOT NULL,
   category ENUM('CONDIMENT','RETAIL_DRY_GOODS') NOT NULL DEFAULT 'CONDIMENT',
   barcode VARCHAR(64) NULL,
   active TINYINT(1) NOT NULL DEFAULT 1,
+  UNIQUE KEY uq_sku (sku),
   UNIQUE KEY uq_barcode (barcode)
 );
 
@@ -172,6 +175,32 @@ CREATE TABLE ospr_boxes_used (
 );
 
 -- ------------------------------------------------------------
+-- Pack logs - per-shift packing quota tracking (Section 8.5,
+-- new). Independent of OSPR: each row is one packer logging N
+-- packs of one product/SKU/unit during one shift. Deliberately
+-- does NOT touch channel_inventory - this is a performance/quota
+-- log layered on top of the existing withdrawal/OSPR flow, not
+-- another source of truth for stock (see system-workflows.md).
+-- A packer's quota (default 85 packs/shift) lives on packers.daily_quota.
+-- ------------------------------------------------------------
+CREATE TABLE pack_logs (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  packer_id INT NOT NULL,
+  work_date DATE NOT NULL,
+  shift ENUM('AM','PM') NOT NULL,
+  product_id INT NOT NULL,
+  unit_id INT NOT NULL,
+  quantity DECIMAL(10,2) NOT NULL DEFAULT 1,
+  notes VARCHAR(255) NULL,
+  logged_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (packer_id) REFERENCES packers(id),
+  FOREIGN KEY (product_id) REFERENCES products(id),
+  FOREIGN KEY (unit_id) REFERENCES units(id)
+);
+
+CREATE INDEX idx_pack_logs_packer_shift ON pack_logs (packer_id, work_date, shift);
+
+-- ------------------------------------------------------------
 -- RTS triage (returns) - single tally today, category is an
 -- optional upgrade (defaults to UNSORTED)
 -- ------------------------------------------------------------
@@ -257,36 +286,40 @@ CREATE TABLE audit_log (
 -- ============================================================
 -- Seed: Product catalog (Section 10, as observed)
 -- ============================================================
-INSERT INTO products (name, category) VALUES
- ('Sweet','CONDIMENT'),
- ('Chami Sweet','CONDIMENT'),
- ('Special','CONDIMENT'),
- ('More Sweet','CONDIMENT'),
- ('Dark','CONDIMENT'),
- ('Fish Sauce (Class A)','CONDIMENT'),
- ('Vinegar White (Class A)','CONDIMENT'),
- ('Vinegar Red (Class A)','CONDIMENT'),
- ('Oyster Sauce','CONDIMENT'),
- ('Oyster Sauce Dark','CONDIMENT'),
- ('Catsup Banana','CONDIMENT'),
- ('Catsup Burger','CONDIMENT'),
- ('Toyomansi','CONDIMENT'),
- ('Distilled Cane Vinegar White','CONDIMENT'),
- ('Premium Soy Sauce Special','CONDIMENT'),
- ('Premium Soy Sauce Sweet','CONDIMENT'),
- ('Premium Fish Sauce','CONDIMENT'),
- ('Premium Vinegar White','CONDIMENT'),
- ('Premium Vinegar Red','CONDIMENT'),
- ('Liquid Seasoning','CONDIMENT'),
- ('Sukang Maligalig 750ml','CONDIMENT'),
- ('Patis Puro','CONDIMENT'),
- ('Premium Black for Guisado','CONDIMENT'),
- ('Retail Iodized Salt','RETAIL_DRY_GOODS'),
- ('Retail Cassava','RETAIL_DRY_GOODS'),
- ('Jampong Hot Sauce','CONDIMENT'),
- ('Retail Ground Pepper','RETAIL_DRY_GOODS'),
- ('Retail Onion Powder','RETAIL_DRY_GOODS'),
- ('Retail Chili Powder','RETAIL_DRY_GOODS');
+-- SKUs below are placeholder, sequential codes (AE-0001..AE-0029) assigned
+-- during this port so the now-required, unique sku column has something to
+-- seed with - re-code them to the operation's real SKU scheme via the
+-- Product Catalog page (or a CSV re-import) once one is settled.
+INSERT INTO products (name, sku, category) VALUES
+ ('Sweet','AE-0001','CONDIMENT'),
+ ('Chami Sweet','AE-0002','CONDIMENT'),
+ ('Special','AE-0003','CONDIMENT'),
+ ('More Sweet','AE-0004','CONDIMENT'),
+ ('Dark','AE-0005','CONDIMENT'),
+ ('Fish Sauce (Class A)','AE-0006','CONDIMENT'),
+ ('Vinegar White (Class A)','AE-0007','CONDIMENT'),
+ ('Vinegar Red (Class A)','AE-0008','CONDIMENT'),
+ ('Oyster Sauce','AE-0009','CONDIMENT'),
+ ('Oyster Sauce Dark','AE-0010','CONDIMENT'),
+ ('Catsup Banana','AE-0011','CONDIMENT'),
+ ('Catsup Burger','AE-0012','CONDIMENT'),
+ ('Toyomansi','AE-0013','CONDIMENT'),
+ ('Distilled Cane Vinegar White','AE-0014','CONDIMENT'),
+ ('Premium Soy Sauce Special','AE-0015','CONDIMENT'),
+ ('Premium Soy Sauce Sweet','AE-0016','CONDIMENT'),
+ ('Premium Fish Sauce','AE-0017','CONDIMENT'),
+ ('Premium Vinegar White','AE-0018','CONDIMENT'),
+ ('Premium Vinegar Red','AE-0019','CONDIMENT'),
+ ('Liquid Seasoning','AE-0020','CONDIMENT'),
+ ('Sukang Maligalig 750ml','AE-0021','CONDIMENT'),
+ ('Patis Puro','AE-0022','CONDIMENT'),
+ ('Premium Black for Guisado','AE-0023','CONDIMENT'),
+ ('Retail Iodized Salt','AE-0024','RETAIL_DRY_GOODS'),
+ ('Retail Cassava','AE-0025','RETAIL_DRY_GOODS'),
+ ('Jampong Hot Sauce','AE-0026','CONDIMENT'),
+ ('Retail Ground Pepper','AE-0027','RETAIL_DRY_GOODS'),
+ ('Retail Onion Powder','AE-0028','RETAIL_DRY_GOODS'),
+ ('Retail Chili Powder','AE-0029','RETAIL_DRY_GOODS');
 
 -- unit ids: 1=GAL 2=LIT 3=750ML 4=350ML 5=KG
 -- Items 24, 27, 28, 29 were marked under GAL on the paper form but are

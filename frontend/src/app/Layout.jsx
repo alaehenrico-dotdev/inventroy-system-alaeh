@@ -17,6 +17,7 @@ const NAV_GROUPS = [
     label: 'Packing (Online)',
     links: [
       { to: '/ospr', label: 'OSPR Batches' },
+      { to: '/pack-logs', label: 'Packing Quota' },
       { to: '/rts', label: 'RTS Triage' },
     ],
   },

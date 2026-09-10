@@ -8,6 +8,7 @@ import Products from '../features/products/Products.jsx';
 import Withdrawals from '../features/withdrawals/Withdrawals.jsx';
 import OsprList from '../features/ospr/OsprList.jsx';
 import OsprBatch from '../features/ospr/OsprBatch.jsx';
+import PackLogs from '../features/pack-logs/PackLogs.jsx';
 import Transfers from '../features/transfers/Transfers.jsx';
 import Rts from '../features/rts/Rts.jsx';
 import Logistics from '../features/logistics/Logistics.jsx';
@@ -33,6 +34,7 @@ function Shell() {
           <Route path="/withdrawals" element={<Withdrawals />} />
           <Route path="/ospr" element={<OsprList />} />
           <Route path="/ospr/:id" element={<OsprBatch />} />
+          <Route path="/pack-logs" element={<PackLogs />} />
           <Route path="/transfers" element={<Transfers />} />
           <Route path="/rts" element={<Rts />} />
           <Route path="/logistics" element={<Logistics />} />

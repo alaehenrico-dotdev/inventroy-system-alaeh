@@ -42,8 +42,10 @@ for reporting but deliberately left out of this balance flow; see 1.3.)
    transaction that also re-checks the batch is still `OPEN` (`FOR UPDATE`),
    so a line can't be added to a batch someone just closed.
 3. A line can be removed while the batch is still open
-   (`DELETE /api/ospr/items`) — **note:** this does not currently reverse
-   the ONLINE decrement (a known gap, not yet fixed).
+   (`DELETE /api/ospr/items`) — this reverses the ONLINE decrement the
+   line made and re-checks the batch is still `OPEN` (`FOR UPDATE`), same
+   as the Delivery Receipt manifest case in 2.2. (Previously a known gap:
+   removal used to leave the decrement in place - fixed.)
 4. When packing is done, the batch is **closed**
    (`POST /api/ospr/close`): sets `packed_by`/`time_ended`, and
    auto-computes the Accomplishment Report (total pieces, total parcels,
@@ -154,9 +156,24 @@ The only sanctioned way stock moves *between* ONLINE and OFFLINE:
 - **Login** — username/password against `users`, no session timeout, no
   role enforcement on writes yet (a known gap — `users.role` exists in the
   schema but nothing currently checks it server-side).
-- **Product catalog** — add products, flag which units they carry, assign
-  a barcode (unique when set) for the scan-to-select flow used in 2.2/2.1.
-  Creating a product seeds `channel_inventory` rows at 0 for both channels.
+- **Product catalog** — add or edit products, each with a required unique
+  SKU, flag which units they carry, assign a barcode (unique when set) for
+  the scan-to-select flow used in 2.2/2.1. Creating a product seeds
+  `channel_inventory` rows at 0 for both channels; editing can only *add*
+  units to a product, not remove one, since a unit's `channel_inventory`
+  row isn't cleaned up by dropping the `product_units` link (it would
+  orphan any existing balance). Also supports CSV export (full catalog)
+  and CSV import (upserts by SKU: a matching SKU updates
+  name/category/barcode and adds any new units listed; an unmatched SKU
+  inserts a new product) via `GET/POST /api/products/export|import`.
+- **Packing quota** — packers log packs against their shift
+  (`POST /api/pack-logs`: packer, shift, product, unit/SKU, quantity),
+  tracked against a per-packer quota (`packers.daily_quota`, defaults to
+  85/shift). `GET /api/pack-logs/quota-summary?date=&shift=` rolls this up
+  per packer — total packed, remaining, quota met y/n, and a
+  product/SKU breakdown. Deliberately independent of `channel_inventory` —
+  it's a performance/quota log layered over the existing withdrawal/OSPR
+  flow, not another source of truth for stock.
 - **Stock alerts** — any `channel_inventory` row at or below its
   `low_stock_threshold`, either channel, surfaced on the Dashboard.
 - **Audit trail** — every write above logs an append-only row
