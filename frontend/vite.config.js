@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
-// Dev server runs on :5173 and talks to the PHP API served by XAMPP on :80.
+// Dev server runs on :5173 and talks to the Express API on :4000 (see backend/).
 export default defineConfig({
   plugins: [
     react(),
@@ -20,7 +20,7 @@ export default defineConfig({
       workbox: {
         // App shell (HTML/JS/CSS) is precached automatically so the Logistics
         // pages still load with no connection - see navigateFallback below.
-        // The API is a different origin (XAMPP on :80 vs the Vite app), so
+        // The API is a different origin (:4000 vs the Vite app), so
         // it's not precached; only these read-only lookups get a runtime
         // cache, since serving them stale is harmless (unlike a write).
         navigateFallback: '/index.html',
