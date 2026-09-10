@@ -53,7 +53,8 @@ CREATE TABLE products (
   name VARCHAR(100) NOT NULL,
   category ENUM('CONDIMENT','RETAIL_DRY_GOODS') NOT NULL DEFAULT 'CONDIMENT',
   barcode VARCHAR(64) NULL,
-  active TINYINT(1) NOT NULL DEFAULT 1
+  active TINYINT(1) NOT NULL DEFAULT 1,
+  UNIQUE KEY uq_barcode (barcode)
 );
 
 CREATE TABLE product_units (
@@ -211,16 +212,32 @@ CREATE TABLE fulfillment_daily_items (
 );
 
 -- ------------------------------------------------------------
+-- Offline logistics: Delivery Receipt manifests (header) - scan
+-- multiple SKUs onto one waybill/reference before closing.
+-- ------------------------------------------------------------
+CREATE TABLE logistics_receipts (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  reference VARCHAR(80) NOT NULL,
+  supplier VARCHAR(80) NULL,
+  received_by VARCHAR(80) NULL,
+  status ENUM('OPEN','CLOSED') NOT NULL DEFAULT 'OPEN',
+  opened_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  closed_at DATETIME NULL
+);
+
+-- ------------------------------------------------------------
 -- Offline logistics transactions
 -- ------------------------------------------------------------
 CREATE TABLE logistics_transactions (
   id INT AUTO_INCREMENT PRIMARY KEY,
   type ENUM('DELIVERY_RECEIPT','BACKLOAD','UPSELL','BAD_ORDER') NOT NULL,
+  receipt_id INT NULL,
   product_id INT NOT NULL,
   unit_id INT NOT NULL,
   quantity DECIMAL(10,2) NOT NULL,
   reference VARCHAR(80) NULL,
   logged_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (receipt_id) REFERENCES logistics_receipts(id) ON DELETE CASCADE,
   FOREIGN KEY (product_id) REFERENCES products(id),
   FOREIGN KEY (unit_id) REFERENCES units(id)
 );
